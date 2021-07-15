@@ -24,10 +24,6 @@ import java.util.List;
  * Subscription on a JetStream context.
  */
 public interface JetStreamSubscription extends Subscription {
-    /**
-     * The maximum pull size
-     */
-    public static final int MAX_PULL_SIZE = 256;
 
     /**
      * Polls for new messages, overriding the default batch size for this pull only.

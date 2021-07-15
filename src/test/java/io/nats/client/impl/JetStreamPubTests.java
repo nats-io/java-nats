@@ -80,6 +80,7 @@ public class JetStreamPubTests extends JetStreamTestBase {
 
     private void assertNextMessage(Subscription s, String data) throws InterruptedException {
         Message m = s.nextMessage(DEFAULT_TIMEOUT);
+        System.out.println(m.getClass() + " " + m);
         assertNotNull(m);
         if (data == null) {
             assertNotNull(m.getData());
@@ -224,7 +225,7 @@ public class JetStreamPubTests extends JetStreamTestBase {
             createTestStream(nc);
             JetStream js = nc.jetStream();
 
-            // stream supplied but matches
+            // stream supplied and matches
             PublishOptions po = PublishOptions.builder().stream(STREAM).build();
             js.publish(SUBJECT, dataBytes(999), po);
 

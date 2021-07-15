@@ -79,45 +79,49 @@ public class JetStreamPushHandlerTests extends JetStreamTestBase {
             // create a dispatcher without a default handler.
             Dispatcher dispatcher = nc.createDispatcher();
 
-            // auto ack true
+            // 1. auto ack true
             CountDownLatch msgLatch1 = new CountDownLatch(10);
             AtomicInteger received1 = new AtomicInteger();
 
-            // create our message handler.
+            // create our message handler, does not ack
             MessageHandler handler1 = (Message msg) -> {
                 received1.incrementAndGet();
                 msgLatch1.countDown();
             };
 
-            // Subscribe using the handler
+            // subscribe using the handler, auto ack true
             PushSubscribeOptions pso1 = PushSubscribeOptions.builder().durable(durable(1)).build();
             js.subscribe(SUBJECT, dispatcher, handler1, true, pso1);
 
-            // Wait for messages to arrive using the countdown latch.
+            // wait for messages to arrive using the countdown latch.
             msgLatch1.await();
 
             assertEquals(10, received1.get());
 
+            // check that all the messages were read by the durable
             JetStreamSubscription sub = js.subscribe(SUBJECT, pso1);
             assertNull(sub.nextMessage(Duration.ofSeconds(1)));
 
-            // auto ack false
+            // 2. auto ack false
             CountDownLatch msgLatch2 = new CountDownLatch(10);
             AtomicInteger received2 = new AtomicInteger();
 
-            // create our message handler.
+            // create our message handler, also does not ack
             MessageHandler handler2 = (Message msg) -> {
                 received2.incrementAndGet();
                 msgLatch2.countDown();
             };
 
-            ConsumerConfiguration cc = ConsumerConfiguration.builder().ackWait(Duration.ofSeconds(1)).build();
+            // subscribe using the handler, auto ack false
+            ConsumerConfiguration cc = ConsumerConfiguration.builder().ackWait(Duration.ofMillis(500)).build();
             PushSubscribeOptions pso2 = PushSubscribeOptions.builder().durable(durable(2)).configuration(cc).build();
             js.subscribe(SUBJECT, dispatcher, handler2, false, pso2);
 
+            // wait for messages to arrive using the countdown latch.
             msgLatch2.await();
-
             assertEquals(10, received2.get());
+
+            sleep(1000); // just give it time for the server to realize the messages are not ack'ed
 
             sub = js.subscribe(SUBJECT, pso2);
             assertNotNull(sub.nextMessage(Duration.ofSeconds(5)));

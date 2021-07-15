@@ -16,6 +16,7 @@ package io.nats.client.impl;
 import io.nats.client.*;
 import io.nats.client.api.*;
 import io.nats.client.utils.TestBase;
+import org.junit.jupiter.api.function.Executable;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -68,6 +69,12 @@ public class JetStreamTestBase extends TestBase {
         System.out.println("\n" + n + ". -------------------------------");
         printStreamInfo(jsm.getStreamInfo(STREAM));
         printConsumerInfo(jsm.getConsumerInfo(STREAM, DURABLE));
+    }
+
+    public static <T extends Throwable> T assertThrowsPrint(Class<T> expectedType, Executable executable) {
+        T t = org.junit.jupiter.api.Assertions.assertThrows(expectedType, executable);
+        t.printStackTrace();
+        return t;
     }
 
     // ----------------------------------------------------------------------------------------------------
@@ -163,15 +170,17 @@ public class JetStreamTestBase extends TestBase {
     }
 
     public static void assertSubscription(JetStreamSubscription sub, String stream, String consumer, String deliver, boolean isPullMode) {
-        String s = sub.toString();
-        assertTrue(s.contains("stream='" + stream));
-        if (consumer != null) {
-            assertTrue(s.contains("consumer='" + consumer));
+        assertEquals(stream, ((NatsJetStreamSubscription)sub).getStream());
+        if (consumer == null) {
+            assertNotNull(((NatsJetStreamSubscription)sub).getConsumer());
+        }
+        else {
+            assertEquals(consumer, ((NatsJetStreamSubscription) sub).getConsumer());
         }
         if (deliver != null) {
-            assertTrue(s.contains("deliver='" + deliver));
+            assertEquals(deliver, ((NatsJetStreamSubscription)sub).getDeliverSubject());
         }
-        assertTrue(s.contains("isPullMode='" + isPullMode));
+        assertEquals(isPullMode, ((NatsJetStreamSubscription)sub).isPullMode());
     }
 
     public static void assertSameMessages(List<Message> l1, List<Message> l2) {

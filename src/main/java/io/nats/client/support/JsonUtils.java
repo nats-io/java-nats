@@ -203,8 +203,12 @@ public abstract class JsonUtils {
         return list;
     }
 
-    public static byte[] simpleMessageBody(String name, Object value) {
+    public static byte[] simpleMessageBody(String name, Number value) {
         return (OPENQ + name + QCOLON + value + CLOSE).getBytes();
+    }
+
+    public static byte[] simpleMessageBody(String name, String value) {
+        return (OPENQ + name + QCOLONQ + value + Q + CLOSE).getBytes();
     }
 
     public static StringBuilder beginJson() {

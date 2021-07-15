@@ -23,6 +23,16 @@ import java.util.List;
 public interface JetStreamManagement {
 
     /**
+     * Gets the account statistics for the logged in account.
+     * @return account statistics
+     * @throws IOException covers various communication issues with the NATS
+     *         server such as timeout or interruption
+     * @throws JetStreamApiException the request had an error related to the data
+     * @throws IllegalArgumentException the server is not JetStream enabled
+     */
+    AccountStatistics getAccountStatistics() throws IOException, JetStreamApiException;
+
+    /**
      * Loads or creates a stream.
      * @param config the stream configuration to use.
      * @return stream information

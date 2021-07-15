@@ -18,7 +18,6 @@ import io.nats.client.JetStreamSubscription;
 import io.nats.client.Message;
 import io.nats.client.PushSubscribeOptions;
 import io.nats.client.api.ConsumerConfiguration;
-import io.nats.client.api.ConsumerInfo;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
@@ -32,25 +31,21 @@ import static org.junit.jupiter.api.Assertions.*;
 public class JetStreamPushTests extends JetStreamTestBase {
 
     @ParameterizedTest
-    @NullSource
-    @ValueSource(strings = {DELIVER})
+    @NullSource // tests null or no deliver subject
+    @ValueSource(strings = {DELIVER}) // tests actual deliver subject
     public void testPushEphemeral(String deliverSubject) throws Exception {
         runInJsServer(nc -> {
-            // Create our JetStream context to receive JetStream messages.
-            JetStream js = nc.jetStream();
-
             // create the stream.
             createMemoryStream(nc, STREAM, SUBJECT);
+
+            // Create our JetStream context to receive JetStream messages.
+            JetStream js = nc.jetStream();
 
             // publish some messages
             jsPublish(js, SUBJECT, 1, 5);
 
             // Build our subscription options.
-            PushSubscribeOptions.Builder builder = PushSubscribeOptions.builder();
-            if (deliverSubject != null) {
-                builder.deliverSubject(deliverSubject);
-            }
-            PushSubscribeOptions options = builder.build();
+            PushSubscribeOptions options = PushSubscribeOptions.builder().deliverSubject(deliverSubject).build();
 
             // Subscription 1
             JetStreamSubscription sub = js.subscribe(SUBJECT, options);
@@ -90,11 +85,11 @@ public class JetStreamPushTests extends JetStreamTestBase {
     @ValueSource(strings = {DELIVER})
     public void testPushDurable(String deliverSubject) throws Exception {
         runInJsServer(nc -> {
-            // Create our JetStream context to receive JetStream messages.
-            JetStream js = nc.jetStream();
-
             // create the stream.
             createMemoryStream(nc, STREAM, SUBJECT);
+
+            // Create our JetStream context to receive JetStream messages.
+            JetStream js = nc.jetStream();
 
             // publish some messages
             jsPublish(js, SUBJECT, 1, 5);
@@ -246,23 +241,6 @@ public class JetStreamPushTests extends JetStreamTestBase {
             message.ackSync(Duration.ofSeconds(1));
 
             assertNull(sub.nextMessage(Duration.ofSeconds(1)));
-        });
-    }
-
-    @Test
-    public void testGetConsumerInfo() throws Exception {
-        runInJsServer(nc -> {
-            // Create our JetStream context to receive JetStream messages.
-            JetStream js = nc.jetStream();
-
-            // create the stream.
-            createMemoryStream(nc, STREAM, SUBJECT);
-
-            JetStreamSubscription sub = js.subscribe(SUBJECT);
-            nc.flush(Duration.ofSeconds(1)); // flush outgoing communication with/to the server
-
-            ConsumerInfo ci = sub.getConsumerInfo();
-            assertEquals(STREAM, ci.getStreamName());
         });
     }
 

@@ -22,10 +22,12 @@ import io.nats.client.api.ConsumerConfiguration;
 public abstract class SubscribeOptions {
 
     protected final String stream;
+    protected final boolean direct;
     protected final ConsumerConfiguration consumerConfig;
 
-    protected SubscribeOptions(String stream, ConsumerConfiguration consumerConfig) {
+    protected SubscribeOptions(String stream, boolean direct, ConsumerConfiguration consumerConfig) {
         this.stream = stream;
+        this.direct = direct;
         this.consumerConfig = consumerConfig;
     }
 
@@ -46,6 +48,14 @@ public abstract class SubscribeOptions {
     }
 
     /**
+     * Gets whether this subscription is expected to be direct
+     * @return the direct flag
+     */
+    public boolean isDirect() {
+        return direct;
+    }
+
+    /**
      * Gets the consumer configuration.
      * @return the consumer configuration.
      */
@@ -57,6 +67,7 @@ public abstract class SubscribeOptions {
     public String toString() {
         return getClass().getSimpleName() + "{" +
                 "stream='" + stream + '\'' +
+                "direct=" + direct +
                 ", " + consumerConfig +
                 '}';
     }
@@ -67,6 +78,7 @@ public abstract class SubscribeOptions {
      */
     protected static abstract class Builder<B, SO> {
         protected String stream;
+        protected boolean direct;
         protected String durable;
         protected ConsumerConfiguration consumerConfig;
 
@@ -80,6 +92,15 @@ public abstract class SubscribeOptions {
          */
         public B stream(String stream) {
             this.stream = stream;
+            return getThis();
+        }
+
+        /**
+         * Specify the to attach in direct mode
+         * @return the builder
+         */
+        public B direct() {
+            this.direct = true;
             return getThis();
         }
 

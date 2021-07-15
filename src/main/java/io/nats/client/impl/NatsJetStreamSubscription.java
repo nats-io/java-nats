@@ -51,6 +51,18 @@ public class NatsJetStreamSubscription extends NatsSubscription implements JetSt
         isPullMode = subscribeOptions instanceof PullSubscribeOptions;
     }
 
+    String getConsumer() {
+        return consumer;
+    }
+
+    String getStream() {
+        return stream;
+    }
+
+    String getDeliverSubject() {
+        return deliver;
+    }
+
     boolean isPullMode() {
         return isPullMode;
     }
@@ -104,10 +116,6 @@ public class NatsJetStreamSubscription extends NatsSubscription implements JetSt
     @Override
     public ConsumerInfo getConsumerInfo() throws IOException, JetStreamApiException {
         return js.lookupConsumerInfo(stream, consumer);
-    }
-
-    private interface InternalBatchHandler {
-        boolean onMessage(Message message) throws InterruptedException;
     }
 
     private static final Duration SUBSEQUENT_WAITS = Duration.ofMillis(500);

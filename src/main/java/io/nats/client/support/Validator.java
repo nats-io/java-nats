@@ -17,7 +17,7 @@ import io.nats.client.api.ConsumerConfiguration;
 
 import java.time.Duration;
 
-import static io.nats.client.JetStreamSubscription.MAX_PULL_SIZE;
+import static io.nats.client.support.NatsJetStreamConstants.MAX_PULL_SIZE;
 
 public abstract class Validator {
     private Validator() {} /* ensures cannot be constructed */
@@ -54,6 +54,12 @@ public abstract class Validator {
 
     public static String validateJetStreamPrefix(String s) {
         return validatePrintableExceptWildGtDollar(s, "Prefix", false);
+    }
+
+    public static void validateDirect(boolean direct, String stream, String durable) {
+        if (direct && (nullOrEmpty(stream) || nullOrEmpty(durable))) {
+            throw new IllegalArgumentException("Stream and Durable are required for direct mode.");
+        }
     }
 
     interface Check {

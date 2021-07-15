@@ -23,8 +23,8 @@ import static io.nats.client.support.Validator.*;
  */
 public class PushSubscribeOptions extends SubscribeOptions {
 
-    private PushSubscribeOptions(String stream, ConsumerConfiguration consumerConfig) {
-        super(stream, consumerConfig);
+    private PushSubscribeOptions(String stream, boolean direct, ConsumerConfiguration consumerConfig) {
+        super(stream, direct, consumerConfig);
     }
 
     /**
@@ -43,6 +43,17 @@ public class PushSubscribeOptions extends SubscribeOptions {
      */
     public static PushSubscribeOptions bind(String stream) {
         return new Builder().stream(stream).build();
+    }
+
+    /**
+     * Create PushSubscribeOptions where you are binding to
+     * a specific stream, specific durable and are using direct mode
+     * @param stream the stream name to bind to
+     * @param durable the durable name
+     * @return push subscribe options
+     */
+    public static PushSubscribeOptions direct(String stream, String durable) {
+        return new PushSubscribeOptions.Builder().stream(stream).durable(durable).direct().build();
     }
 
     public static Builder builder() {
@@ -79,19 +90,23 @@ public class PushSubscribeOptions extends SubscribeOptions {
          */
         @Override
         public PushSubscribeOptions build() {
+            // stream not required when not direct (direct is checked later)
             stream = validateStreamName(stream, false);
 
+            // durable not required when not direct (direct is checked later)
             durable = validateDurable(durable, false);
             if (durable == null && consumerConfig != null) {
                 durable = validateDurable(consumerConfig.getDurable(), false);
             }
+
+            validateDirect(direct, stream, durable);
 
             this.consumerConfig = ConsumerConfiguration.builder(consumerConfig)
                     .durable(durable)
                     .deliverSubject(emptyAsNull(deliverSubject))
                     .build();
 
-            return new PushSubscribeOptions(stream, consumerConfig);
+            return new PushSubscribeOptions(stream, direct, consumerConfig);
         }
     }
 }

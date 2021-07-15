@@ -15,8 +15,7 @@ package io.nats.client;
 
 import io.nats.client.api.ConsumerConfiguration;
 
-import static io.nats.client.support.Validator.validateDurableRequired;
-import static io.nats.client.support.Validator.validateStreamName;
+import static io.nats.client.support.Validator.*;
 
 /**
  * The PullSubscribeOptions class specifies the options for subscribing with JetStream enabled servers.
@@ -24,12 +23,23 @@ import static io.nats.client.support.Validator.validateStreamName;
  */
 public class PullSubscribeOptions extends SubscribeOptions {
 
-    private PullSubscribeOptions(String stream, ConsumerConfiguration consumerConfig) {
-        super(stream, consumerConfig);
+    private PullSubscribeOptions(String stream, boolean direct, ConsumerConfiguration consumerConfig) {
+        super(stream, direct, consumerConfig);
     }
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    /**
+     * Create PullSubscribeOptions where you are binding to
+     * a specific stream, specific durable and are using direct mode
+     * @param stream the stream name to bind to
+     * @param durable the durable name
+     * @return push subscribe options
+     */
+    public static PullSubscribeOptions direct(String stream, String durable) {
+        return new PullSubscribeOptions.Builder().stream(stream).durable(durable).direct().build();
     }
 
     /**
@@ -50,15 +60,19 @@ public class PullSubscribeOptions extends SubscribeOptions {
          */
         @Override
         public PullSubscribeOptions build() {
-            validateStreamName(stream, false);
+            // stream not required when not direct (direct is checked later)
+            stream = validateStreamName(stream, false);
 
+            // durable is required for pull
             durable = validateDurableRequired(durable, consumerConfig);
+
+            validateDirect(direct, stream, durable);
 
             ConsumerConfiguration cc = ConsumerConfiguration.builder(consumerConfig)
                     .durable(durable)
                     .build();
 
-            return new PullSubscribeOptions(stream, cc);
+            return new PullSubscribeOptions(stream, direct, cc);
         }
     }
 }

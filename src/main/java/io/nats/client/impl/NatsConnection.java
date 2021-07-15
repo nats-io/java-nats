@@ -1887,28 +1887,31 @@ class NatsConnection implements Connection {
 
     @Override
     public JetStream jetStream() throws IOException {
-        return getNatsJetStream(null);
+        ensureNotClosing();
+        return new NatsJetStream(this, null);
     }
 
     @Override
     public JetStream jetStream(JetStreamOptions options) throws IOException {
-        return getNatsJetStream(options);
+        ensureNotClosing();
+        return new NatsJetStream(this, options);
     }
 
     @Override
     public JetStreamManagement jetStreamManagement() throws IOException {
-        return getNatsJetStream(null);
+        ensureNotClosing();
+        return new NatsJetStreamManagement(this, null);
     }
 
     @Override
     public JetStreamManagement jetStreamManagement(JetStreamOptions options) throws IOException {
-        return getNatsJetStream(options);
+        ensureNotClosing();
+        return new NatsJetStreamManagement(this, options);
     }
 
-    private NatsJetStream getNatsJetStream(JetStreamOptions options) throws IOException {
+    private void ensureNotClosing() throws IOException {
         if (isClosing() || isClosed()) {
             throw new IOException("A JetStream context can't be established during close.");
         }
-        return new NatsJetStream(this, options);
     }
 }
